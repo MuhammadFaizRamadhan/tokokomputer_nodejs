@@ -94,7 +94,7 @@ app.put("/:id", upload.single("image"), (req, res) =>{
         name: req.body.name,
         phone: req.body.phone,
         address: req.body.address,
-        username: req.body.username
+        password: md5(req.body.password)
     }
     if (req.file) {
         // get data by id

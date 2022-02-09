@@ -66,8 +66,7 @@ app.post("/", upload.single("image"), (req, res) =>{
             name: req.body.name,
             price: req.body.price,
             stock: req.body.stock,
-            image: req.file.filename,
-            createAt: Date.now()
+            image: req.file.filename
         }
         product.create(data)
         .then(result => {
@@ -79,6 +78,81 @@ app.post("/", upload.single("image"), (req, res) =>{
             res.json({
                 message: error.message
             })
+        })
+    }
+})
+
+//endpoint untuk mengubah data product berdasarkan id
+app.put("/:id", upload.single("image"), (req, res) =>{
+    let param = { product_id: req.params.id}
+    let data = {
+            name: req.body.name,
+            price: req.body.price,
+            stock: req.body.stock,
+            image: req.file.filename
+    }
+    if (req.file) {
+        // get data by id
+        const row = product.findOne({where: param})
+        .then(result => {
+            let oldFileName = result.image
+           
+            // delete old file
+            let dir = path.join(__dirname,"../image/product",oldFileName)
+            fs.unlink(dir, err => console.log(err))
+        })
+        .catch(error => {
+            console.log(error.message);
+        })
+
+        // set new filename
+        data.image = req.file.filename
+    }
+    if(req.body.password){
+        data.password = md5(req.body.password)
+    }
+
+    product.update(data, {where: param})
+        .then(result => {
+            res.json({
+                message: "data has been updated",
+            })
+        })
+        .catch(error => {
+            res.json({
+                message: error.message
+            })
+        })
+})
+
+// endpoint untuk menghapus data product berdasarkan id
+app.delete("/:id", async (req, res) =>{
+    try {
+        let param = { product_id: req.params.id}
+        let result = await product.findOne({where: param})
+        let oldFileName = result.image
+           
+        // delete old file
+        let dir = path.join(__dirname,"../image/product",oldFileName)
+        fs.unlink(dir, err => console.log(err))
+ 
+        // delete data
+        product.destroy({where: param})
+        .then(result => {
+           
+            res.json({
+                message: "data has been deleted",
+            })
+        })
+        .catch(error => {
+            res.json({
+                message: error.message
+            })
+        })
+ 
+    } catch (error) {
+        res.json({
+            message: error.message
         })
     }
 })
